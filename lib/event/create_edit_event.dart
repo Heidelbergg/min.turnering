@@ -23,7 +23,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey,
+              color: Colors.grey.withOpacity(0.75),
               blurRadius: 1.0,
               spreadRadius: 0.5,
               offset: Offset(0.0, 1.0), // shadow direction: bottom right
@@ -41,7 +41,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(left: 20, bottom: 20, top: 10),
                 child: Text("Opret event",
-                  style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w700),)),
+                  style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
             Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(left: 20, bottom: 10),
