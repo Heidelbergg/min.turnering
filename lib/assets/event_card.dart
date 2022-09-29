@@ -62,7 +62,7 @@ class EventCard extends StatelessWidget {
                           )),
                     ),
                     Container(
-                      padding: EdgeInsets.only(left: 15, top: 10),
+                      padding: EdgeInsets.only(left: 10, top: 10),
                       child: Text(time,
                           style: const TextStyle(
                             color: Colors.grey,
@@ -71,7 +71,7 @@ class EventCard extends StatelessWidget {
                           )),
                     ),
                     Container(
-                        padding: EdgeInsets.only(left: 15, top: 10),
+                        padding: EdgeInsets.only(left: 10, top: 10),
                         child: icon,),
                   ],
                 ),

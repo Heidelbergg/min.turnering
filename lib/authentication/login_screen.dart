@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:min_turnering/authentication/register_screen.dart';
-import '../event/events_screen.dart';
+import 'package:min_turnering/main_screens/navigation.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     hintText: "Indtast adgangskode...", hintStyle: TextStyle(color: Colors.black),),),
               )),
           ElevatedButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
           },
             child: Text("Login", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
             style: ButtonStyle(
