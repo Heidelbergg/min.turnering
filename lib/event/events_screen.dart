@@ -23,10 +23,9 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         title: Text('Events', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),),
         toolbarHeight: 100,
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageEventScreen()));
-      }, backgroundColor: const Color(0xFF42BEA5), child: Icon(Icons.add)),
-      body: Column(
+      floatingActionButton: FloatingActionButton(onPressed: () {}, backgroundColor: const Color(0xFF42BEA5), child: Icon(Icons.add)),
+      body: ListView(
+        shrinkWrap: true,
         children: [
           ClipPath(
             clipper: EventHeaderCustomClipPath(),
