@@ -17,7 +17,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        height: MediaQuery.of(context).size.height / 1.5,
+        height: MediaQuery.of(context).size.height / 1.25,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -30,11 +30,12 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
             )
           ],
         ),
-        child: Column(
+        child: ListView(
+          shrinkWrap: true,
           children: [
             Container(
               alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(top: 50, left: 5),
+              padding: EdgeInsets.only(top: 20, left: 5),
               child: IconButton(onPressed: (){Navigator.pop(context);}, icon: Icon(Icons.arrow_back_ios, color: Colors.grey, size: 20,),),
             ),
             Container(
@@ -154,18 +155,20 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                         floatingLabelBehavior: FloatingLabelBehavior.always,
                         hintText: '2', hintStyle: TextStyle(color: Colors.grey),),),
                 ),
-                Container(
-                  padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
-                  child: ElevatedButton(onPressed: (){
-                    //Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
-                  },
-                    child: Text(createEvent? "Opret event" : 'Gem redigering', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
-                    style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.all(const Size(200, 60)),
-                        backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
-                        elevation: MaterialStateProperty.all(3),
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
-                    ),),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
+                    child: ElevatedButton(onPressed: (){
+                      //Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
+                    },
+                      child: Text(createEvent? "Opret event" : 'Gem redigering', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
+                      style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all(const Size(200, 60)),
+                          backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
+                          elevation: MaterialStateProperty.all(3),
+                          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
+                      ),),
+                  ),
                 ),
               ],
             ),

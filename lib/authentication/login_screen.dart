@@ -21,7 +21,8 @@ class _LoginScreenState extends State<LoginScreen> {
         leading: BackButton(),
       ),
       backgroundColor: const Color(0xFF42BEA5),
-      body: Column(
+      body: ListView(
+        shrinkWrap: true,
         children: [
           Container(
               padding: EdgeInsets.only(left: 20, right: 20, top: 60),
@@ -58,16 +59,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     hintText: "Indtast adgangskode...", hintStyle: TextStyle(color: Colors.black),),),
               )),
-          ElevatedButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
-          },
-            child: Text("Login", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
-            style: ButtonStyle(
-                minimumSize: MaterialStateProperty.all(const Size(200, 50)),
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                elevation: MaterialStateProperty.all(3),
-                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
-            ),),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+              },
+                child: Text("Login", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
+                style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(200, 50)),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                    elevation: MaterialStateProperty.all(3),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
+                ),),
+            ],
+          ),
           Padding(padding: EdgeInsets.only(top: 30)),
           Center(
             child: Row(
