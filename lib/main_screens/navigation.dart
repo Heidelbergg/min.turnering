@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:min_turnering/event/completed_events.dart';
 import 'package:min_turnering/event/events_screen.dart';
 
 class Dashboard extends StatefulWidget {
@@ -38,6 +39,7 @@ class _DashboardState extends State<Dashboard> {
             },
             children: const <Widget>[
               AllEventsScreen(),
+              CompletedEventsScreen()
             ],
           ),
         ),
