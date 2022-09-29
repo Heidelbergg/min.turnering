@@ -8,6 +8,8 @@ class EventDetailsScreen extends StatefulWidget {
 }
 
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
+  bool isCompleted = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +36,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             ),
             Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 20, bottom: 30, top: 5,),
+                padding: EdgeInsets.only(left: 15, bottom: 30, top: 5,),
                 child: Text("Eventnavn",
                   style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
             Row(
@@ -46,7 +48,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 const Spacer(),
                 Container(
                   padding: EdgeInsets.only(right: 10),
-                    child: Text("x deltagere (x i kø)", style: TextStyle(color: Colors.grey, fontSize: 14)))
+                    child: Text("6 deltagere (2 i kø)", style: TextStyle(color: Colors.grey, fontSize: 14)))
               ],
             ),
             Container(
@@ -61,14 +63,14 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 padding: EdgeInsets.only(right: 10, top: 20, left: 20),
                 child: Text("Torsdag 16:30", style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w700))),
             Container(
-              padding: EdgeInsets.only(right: 10, top: 30, left: 10),
+              padding: EdgeInsets.only(right: 10, top: 60, left: 10),
               child: ElevatedButton(onPressed: (){
                 //Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
               },
-                child: Text("Deltag", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
+                child: Text(isCompleted? "Event udført" : "Deltag", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: isCompleted? Colors.white70 : Colors.white)),
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(const Size(300, 60)),
-                    backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
+                    backgroundColor: MaterialStateProperty.all<Color>(isCompleted? Colors.grey : const Color(0xFF42BEA5)),
                     elevation: MaterialStateProperty.all(3),
                     shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
                 ),),
