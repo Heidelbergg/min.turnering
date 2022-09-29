@@ -31,8 +31,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           children: [
             Container(
               alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(top: 50, left: 5, bottom: 5),
-              child: IconButton(onPressed: (){Navigator.pop(context);}, icon: Icon(Icons.arrow_back_ios, color: Colors.grey, size: 20,),),
+              padding: EdgeInsets.only(top: 50),
+              child: BackButton(color: Colors.grey,)
             ),
             Container(
                 alignment: Alignment.centerLeft,

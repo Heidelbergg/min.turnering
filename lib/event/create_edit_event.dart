@@ -35,12 +35,12 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
           children: [
             Container(
               alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(top: 20, left: 5),
-              child: IconButton(onPressed: (){Navigator.pop(context);}, icon: Icon(Icons.arrow_back_ios, color: Colors.grey, size: 20,),),
+              padding: EdgeInsets.only(top: 20),
+              child: BackButton(color: Colors.grey,)
             ),
             Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 20, bottom: 20, top: 10),
+                padding: EdgeInsets.only(left: 20, bottom: 20),
                 child: Text("Opret event",
                   style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
             Container(

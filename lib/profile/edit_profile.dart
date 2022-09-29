@@ -17,12 +17,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: Text('Profilindstillinger', style: TextStyle(fontSize: 22, color: Colors.black, fontWeight: FontWeight.w700),),
         toolbarHeight: 75,
         centerTitle: false,
-        leading: BackButton(color: Colors.black,),
+        leading: BackButton(color: Colors.grey,),
       ),
       body: Container(
         height: MediaQuery.of(context).size.height / 2.5,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
           color: Colors.white,
           boxShadow: [
             BoxShadow(
