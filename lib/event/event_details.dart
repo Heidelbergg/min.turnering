@@ -48,7 +48,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 const Spacer(),
                 Container(
                   padding: EdgeInsets.only(right: 10),
-                    child: Text("6 deltagere (2 i kø)", style: TextStyle(color: Colors.grey, fontSize: 14)))
+                    child: TextButton(onPressed: () {
+                      // see participants
+                    }, child: Text("6 deltagere (2 i kø)", style: TextStyle(color: Colors.grey, fontSize: 14),),))
               ],
             ),
             Container(

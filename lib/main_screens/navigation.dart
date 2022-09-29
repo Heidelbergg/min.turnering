@@ -74,7 +74,7 @@ class _DashboardState extends State<Dashboard> {
                     icon: Icon(Icons.event)
                 ),
                 BottomNavigationBarItem(
-                    label: 'Historik',
+                    label: 'Dine events',
                     icon: Icon(Icons.access_time)
                 ),
                 BottomNavigationBarItem(
