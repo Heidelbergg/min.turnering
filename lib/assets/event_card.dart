@@ -5,14 +5,12 @@ class EventCard extends StatelessWidget {
   final String day;
   final String time;
   final Icon icon;
-  final Icon icon2;
   final Function() onPressed;
 
   const EventCard(
       {required this.text,
         required this.day,
         required this.icon,
-        required this.icon2,
         required this.time,
         required this.onPressed,
         Key? key})
@@ -26,10 +24,10 @@ class EventCard extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         height: 120,
         padding: const EdgeInsets.only(top: 5, bottom: 5),
-        margin: const EdgeInsets.only(bottom: 10, right: 5, left: 5),
+        margin: const EdgeInsets.only(bottom: 10, right: 20, left: 15),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(17.5),
           boxShadow: [
             BoxShadow(
                 offset: const Offset(5, 5),
@@ -39,49 +37,46 @@ class EventCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.only(left: 15, top: 15),
-                    child: Text(day,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        )),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(left: 15, top: 10),
-                    child: Text(text,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        )),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(left: 15, top: 10),
-                    child: Text(time,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        )),
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.only(left: 15, top: 15, bottom: 5),
+                  child: Text(text,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
+                      )),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(left: 15, top: 10),
+                      child: Text(day,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          )),
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(left: 10, top: 10),
+                      child: Text(time,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          )),
+                    ),
+                    Container(
+                        padding: EdgeInsets.only(left: 10, top: 10),
+                        child: icon,),
+                  ],
+                ),
+              ],
             ),
-            const Spacer(),
-            Container(
-                padding: EdgeInsets.only(left: 5),
-                child: icon),
-            Container(
-                padding: EdgeInsets.only(left: 5, right: 10),
-                child: icon2),
           ],
         ),
       ),

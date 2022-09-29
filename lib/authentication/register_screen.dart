@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:min_turnering/authentication/login_screen.dart';
-import 'package:min_turnering/event/events_screen.dart';
+import 'package:min_turnering/main_screens/navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                   hintText: "Indtast adgangskode igen...", hintStyle: TextStyle(color: Colors.black),),)),
           ElevatedButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
           },
             child: Text("Opret konto", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
             style: ButtonStyle(
