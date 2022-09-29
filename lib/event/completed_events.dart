@@ -20,7 +20,7 @@ class _CompletedEventsScreenState extends State<CompletedEventsScreen> {
         backgroundColor: const Color(0xFF42BEA5),
         automaticallyImplyLeading: false,
         centerTitle: false,
-        title: Text('Tidligere events', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),),
+        title: Text('Dine events', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),),
         toolbarHeight: 100,
       ),
       body: ListView(
@@ -38,11 +38,20 @@ class _CompletedEventsScreenState extends State<CompletedEventsScreen> {
           Container(
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.only(left: 20, top: 10, bottom: 20),
-              child: Text("Events du har deltaget i",
+              child: Text("Events du har oprettet",
                 style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
-          EventCard(text: 'Amerikansk Fodbold', day: '17/09/2022', icon: Icon(Icons.sports_football), time: '17:00', onPressed:(){
+          EventCard(text: 'Amerikansk Fodbold', day: '17/09/2022', icon: Icon(Icons.sports_football, color: Colors.grey,), time: '17:00', onPressed:(){
             Navigator.push(context, MaterialPageRoute(builder: (context) => const EventDetailsScreen()));
           }),
+          Container(
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.only(left: 20, top: 20, bottom: 20),
+              child: Text("Events du tidligere har deltaget i",
+                style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
+          EventCard(text: 'Fodbold', day: '25/09/2022', icon: Icon(Icons.sports_soccer, color: Colors.grey,), time: '15:00', onPressed:(){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const EventDetailsScreen()));
+          }),
+
         ],
       ),
     );
