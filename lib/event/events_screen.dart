@@ -22,7 +22,8 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         toolbarHeight: 100,
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {}, backgroundColor: const Color(0xFF42BEA5), child: Icon(Icons.add)),
-      body: Column(
+      body: ListView(
+        shrinkWrap: true,
         children: [
           ClipPath(
             clipper: EventHeaderCustomClipPath(),
