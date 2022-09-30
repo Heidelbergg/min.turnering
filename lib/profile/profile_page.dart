@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:min_turnering/main_screens/splash_screen.dart';
 import 'package:min_turnering/profile/change_password.dart';
@@ -96,7 +97,12 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(onPressed: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const SplashScreen()));
+                try{
+                  FirebaseAuth.instance.signOut();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SplashScreen()));
+                } on FirebaseAuthException catch (e){
+                  /// show error snackbar
+                }
               },
                 child: Text("Log ud", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: Colors.black)),
                 style: ButtonStyle(
