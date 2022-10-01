@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,47 +15,43 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   List<String> dropdownItems = ['Fodbold', 'Padel', 'Basketbold', 'Andet'];
   String? selectedItem = 'Fodbold';
 
+  final GlobalKey<FormState> _key = GlobalKey<FormState>();
+  final eventNameController = TextEditingController();
+  final dateController = TextEditingController();
+  final timeController = TextEditingController();
+  final amountController = TextEditingController();
+
+  String? validateName(String? name){
+    if (name == null || name.isEmpty || name == ""){
+      return "Indsæt gyldigt navn";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        height: MediaQuery.of(context).size.height / 1.25,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.75),
-              blurRadius: 1.0,
-              spreadRadius: 0.5,
-              offset: Offset(0.0, 1.0), // shadow direction: bottom right
-            )
-          ],
-        ),
-        child: ListView(
-          shrinkWrap: true,
+      appBar: AppBar(
+        elevation: 3,
+        backgroundColor: const Color(0xFF42BEA5),
+        title: Text(createEvent? 'Opret Event' : 'Rediger Event', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
+        toolbarHeight: 75,
+        leading: BackButton(),
+      ),
+      body: Form(
+        key: _key,
+        child: Column(
           children: [
             Container(
-              alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(top: 20),
-              child: BackButton(color: Colors.grey,)
-            ),
-            Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 20, bottom: 20),
-                child: Text("Opret event",
-                  style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
-            Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 20, bottom: 10),
+                padding: EdgeInsets.only(left: 20, top: 40, bottom: 20),
                 child: Text("Udfyld nedenstående felter for dit event.",
                   style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
             Container(
                 padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                 child: TextFormField(
-                    //validator: validateName,
+                    validator: validateName,
                     keyboardType: TextInputType.text,
-                    //controller: surnameController,
+                    controller: eventNameController,
                     decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                       enabledBorder:
                       OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent),
@@ -72,11 +70,16 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                   width: MediaQuery.of(context).size.width / 2,
                     padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(Duration(days: 90)));
+                      },
                       child: TextFormField(
-                          //validator: validateName,
                           keyboardType: TextInputType.text,
-                          //controller: surnameController,
+                          controller: dateController,
                         enabled: false,
                           decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                             enabledBorder:
@@ -96,9 +99,8 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                     child: InkWell(
                       onTap: () {},
                       child: TextFormField(
-                          //validator: validateName,
                           keyboardType: TextInputType.text,
-                          //controller: surnameController,
+                          controller: timeController,
                         enabled: false,
                           decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                             enabledBorder:
@@ -141,9 +143,9 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                   width: MediaQuery.of(context).size.width / 2,
                   padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                   child: TextFormField(
-                      //validator: validateName,
+
                       keyboardType: TextInputType.number,
-                      //controller: surnameController,
+                      controller: amountController,
                       decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                         enabledBorder:
                         OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent),
@@ -155,20 +157,43 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                         floatingLabelBehavior: FloatingLabelBehavior.always,
                         hintText: '2', hintStyle: TextStyle(color: Colors.grey),),),
                 ),
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
-                    child: ElevatedButton(onPressed: (){
-                      //Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
-                    },
-                      child: Text(createEvent? "Opret event" : 'Gem redigering', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
-                      style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all(const Size(200, 60)),
-                          backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
-                          elevation: MaterialStateProperty.all(3),
-                          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
-                      ),),
-                  ),
+                
+                Container(
+                  padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
+                  child: ElevatedButton(onPressed: (){
+                    if (createEvent){
+                      /// create db record in EventList
+                      FirebaseFirestore.instance.collection('EventList')
+                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
+                          .set({});
+                      /// create db record in user subcollection 'createdEvents'
+                      FirebaseFirestore.instance.collection('users')
+                          .doc(FirebaseAuth.instance.currentUser?.uid)
+                          .collection('createdEvents')
+                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
+                          .set({});
+                      Navigator.pop(context);
+                    } else if (createEvent == false){
+                      /// update db reconrd in EventList
+                      FirebaseFirestore.instance.collection('EventList')
+                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
+                          .update({});
+                      /// update db record in user subcollection 'createdEvents'
+                      FirebaseFirestore.instance.collection('users')
+                          .doc(FirebaseAuth.instance.currentUser?.uid)
+                          .collection('createdEvents')
+                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
+                          .update({});
+                      Navigator.pop(context);
+                    }
+                  },
+                    child: Text(createEvent? "Opret event" : 'Gem redigering', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
+                    style: ButtonStyle(
+                        minimumSize: MaterialStateProperty.all(const Size(200, 60)),
+                        backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
+                        elevation: MaterialStateProperty.all(3),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
+                    ),),
                 ),
               ],
             ),
