@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:min_turnering/assets/event_card.dart';
 import 'package:min_turnering/event/create_edit_event.dart';
+import 'package:min_turnering/event/event_details.dart';
 import '../assets/bezier_clipper.dart';
 
 class AllEventsScreen extends StatefulWidget {
@@ -25,7 +26,8 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
       floatingActionButton: FloatingActionButton(onPressed: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageEventScreen()));
       }, backgroundColor: const Color(0xFF42BEA5), child: Icon(Icons.add)),
-      body: Column(
+      body: ListView(
+        shrinkWrap: true,
         children: [
           ClipPath(
             clipper: EventHeaderCustomClipPath(),
@@ -44,7 +46,13 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           ListView(
             shrinkWrap: true,
               children: [
-                EventCard(text: 'Basketball', day: '29/09/22', icon: Icon(Icons.sports_baseball, size: 20, color: Colors.grey,), time: '16:30', onPressed: (){})
+                EventCard(text: 'Basketball',
+                    day: '29/09/22',
+                    icon: Icon(Icons.sports_baseball, size: 20, color: Colors.grey,),
+                    time: '16:30',
+                    onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const EventDetailsScreen()));
+                    })
               ],
           ),
         ],

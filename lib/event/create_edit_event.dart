@@ -143,6 +143,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                   width: MediaQuery.of(context).size.width / 2,
                   padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                   child: TextFormField(
+
                       keyboardType: TextInputType.number,
                       controller: amountController,
                       decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -156,6 +157,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                         floatingLabelBehavior: FloatingLabelBehavior.always,
                         hintText: '2', hintStyle: TextStyle(color: Colors.grey),),),
                 ),
+                
                 Container(
                   padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
                   child: ElevatedButton(onPressed: (){

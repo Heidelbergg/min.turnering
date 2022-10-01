@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.min.turnering.min_turnering">
+    package="com.min.turnering">
    <application
         android:label="min_turnering"
         android:name="${applicationName}"
