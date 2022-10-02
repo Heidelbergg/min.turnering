@@ -1,7 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:widget_loading/widget_loading.dart';
+
+import 'create_edit_event.dart';
 
 class EventDetailsScreen extends StatefulWidget {
-  const EventDetailsScreen({Key? key}) : super(key: key);
+  final String eventID;
+  const EventDetailsScreen({Key? key, required this.eventID}) : super(key: key);
 
   @override
   State<EventDetailsScreen> createState() => _EventDetailsScreenState();
@@ -9,11 +16,62 @@ class EventDetailsScreen extends StatefulWidget {
 
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool isCompleted = false;
+  bool loading = true;
+
+  late String eventName = "";
+  late String eventType = "";
+  late String eventTime = "";
+  late String eventDate = "";
+  late String participants = "";
+  late String queue = "";
+  late Icon icon = const Icon(null);
+
+  Map icons = {
+    'Fodbold': Icons.sports_soccer,
+    'Padel': Icons.sports_tennis,
+    'Basketbold': Icons.sports_basketball,
+    'Andet': Icons.sports_handball
+  };
+
+  _getEventDetails(){
+    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value){
+      setState(() {
+        eventName = value['eventName'];
+        eventType = value['category'];
+        eventTime = value['time'];
+        eventDate = value['date'];
+        participants = value['participants'].length.toString();
+        queue = value['queue'].length.toString();
+        icon = Icon(icons[value['category']],);
+
+        if (value['facilitator'] == FirebaseAuth.instance.currentUser?.uid){
+          /// navigate to edit event
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ManageEventScreen(create: false, eventID: value.id,)));
+        }
+        loading = false;
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 1), (){
+      _getEventDetails();
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: loading? CircularWidgetLoading(
+        dotColor: const Color(0xFF42BEA5),
+          child: Container()) : Container(
         height: MediaQuery.of(context).size.height / 1.75,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
@@ -37,20 +95,20 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(left: 15, bottom: 30, top: 5,),
-                child: Text("Eventnavn",
+                child: Text(eventName,
                   style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
             Row(
               children: [
                 Container(
                     padding: EdgeInsets.only(left: 20, right: 10),
-                    child: Text("Eventtype", style: TextStyle(color: Colors.grey, fontSize: 14),)),
-                Icon(Icons.sports_baseball, color: Colors.grey,),
+                    child: Text(eventType, style: TextStyle(color: Colors.grey, fontSize: 14),)),
+                icon,
                 const Spacer(),
                 Container(
                   padding: EdgeInsets.only(right: 10),
                     child: TextButton(onPressed: () {
                       // see participants
-                    }, child: Text("6 deltagere (2 i kø)", style: TextStyle(color: Colors.grey, fontSize: 14),),))
+                    }, child: Text("${participants} deltagere (${queue}) i kø", style: TextStyle(color: Colors.grey, fontSize: 14),),))
               ],
             ),
             Container(
@@ -59,11 +117,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: 10, top: 20, left: 20),
-                child: Text("Arrangeret af: Ammar", style: TextStyle(color: Colors.grey, fontSize: 14))),
+                child: Text("Arrangeret af: ${widget.eventID}", style: TextStyle(color: Colors.grey, fontSize: 14))),
             Container(
               alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: 10, top: 20, left: 20),
-                child: Text("Torsdag 16:30", style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w700))),
+                child: Text('${DateFormat.EEEE('da_DK').format(DateTime.parse(eventDate))} ${eventTime}', style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w700))),
             Container(
               padding: EdgeInsets.only(right: 10, top: 60, left: 10),
               child: ElevatedButton(onPressed: (){

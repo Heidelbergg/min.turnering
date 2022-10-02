@@ -2,18 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:min_turnering/event/events_screen.dart';
 
 class ManageEventScreen extends StatefulWidget {
-  const ManageEventScreen({Key? key}) : super(key: key);
+  final bool create;
+  final String? eventID;
+  const ManageEventScreen({Key? key, required this.create, this.eventID}) : super(key: key);
 
   @override
   State<ManageEventScreen> createState() => _CreateEventScreenState();
 }
 
 class _CreateEventScreenState extends State<ManageEventScreen> {
-  late bool createEvent = true;
+  late bool createEvent = widget.create;
+
   List<String> dropdownItems = ['Fodbold', 'Padel', 'Basketbold', 'Andet'];
   String? selectedItem = 'Fodbold';
+  late TimeOfDay time = const TimeOfDay(hour: 9, minute: 0);
+  late DateTime selectedDate = DateTime.now();
+  late String amount = '2';
 
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
   final eventNameController = TextEditingController();
@@ -21,9 +28,26 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   final timeController = TextEditingController();
   final amountController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    amountController.text = '2';
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   String? validateName(String? name){
     if (name == null || name.isEmpty || name == ""){
       return "Indsæt gyldigt navn";
+    }
+  }
+
+  String? validateAmount(String? num){
+    if (num == null || int.parse(num) < 2 || int.parse(num).isNegative || num.isEmpty){
+      return 'Ugyldigt nummer';
     }
   }
 
@@ -33,7 +57,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
       appBar: AppBar(
         elevation: 3,
         backgroundColor: const Color(0xFF42BEA5),
-        title: Text(createEvent? 'Opret Event' : 'Rediger Event', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
+        title: Text(createEvent? 'Opret event' : 'Rediger event', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
         toolbarHeight: 75,
         leading: BackButton(),
       ),
@@ -70,12 +94,26 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                   width: MediaQuery.of(context).size.width / 2,
                     padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                     child: InkWell(
-                      onTap: () {
-                        showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(Duration(days: 90)));
+                      onTap: () async {
+                        selectedDate = (await showDatePicker(
+                                builder: (context, child) {
+                                  return Theme(data: Theme.of(context).copyWith(
+                                      colorScheme: const ColorScheme.light(
+                                        primary: Color(0xFF42BEA5), // header background color
+                                        onPrimary: Colors.white, // header text color
+                                        onSurface: Colors.black,
+                                      )
+                                  ),
+                                      child: child!);
+                                },
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now().add(Duration(days: 90)))
+                        )!;
+                        setState(() {
+                          selectedDate;
+                        });
                       },
                       child: TextFormField(
                           keyboardType: TextInputType.text,
@@ -90,14 +128,30 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                                 borderRadius: BorderRadius.circular(15)
                             ),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
-                            hintText: DateFormat('dd/MM/yyyy').format(DateTime.now()), hintStyle: TextStyle(color: Colors.grey),),),
+                            hintText: DateFormat('dd/MM/yyyy').format(selectedDate), hintStyle: TextStyle(color: Colors.black),),),
                     ),
                     ),
                 Container(
                   width: MediaQuery.of(context).size.width / 2,
                     padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () async {
+                      time = (await showTimePicker(context: context,
+                              builder: (context, child) {
+                                return Theme(data: Theme.of(context).copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: const Color(0xFF42BEA5), // header background color
+                                      onPrimary: Colors.white, // header text color
+                                      onSurface: Colors.black,
+                                    )
+                                ),
+                                    child: child!);
+                              },
+                              initialTime: TimeOfDay(hour: 09, minute: 00)))!;
+                      setState(() {
+                        time;
+                      });
+                      },
                       child: TextFormField(
                           keyboardType: TextInputType.text,
                           controller: timeController,
@@ -111,7 +165,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                                 borderRadius: BorderRadius.circular(15)
                             ),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
-                            hintText: "09:00", hintStyle: TextStyle(color: Colors.grey),),),
+                            hintText: time.format(context).toString(), hintStyle: TextStyle(color: Colors.black),),),
                     ),
                     ),
               ],
@@ -143,7 +197,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                   width: MediaQuery.of(context).size.width / 2,
                   padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                   child: TextFormField(
-
+                    validator: validateAmount,
                       keyboardType: TextInputType.number,
                       controller: amountController,
                       decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -155,36 +209,66 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                             borderRadius: BorderRadius.circular(15)
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.always,
-                        hintText: '2', hintStyle: TextStyle(color: Colors.grey),),),
+                        hintText: amount.toString(), hintStyle: TextStyle(color: Colors.grey),),),
                 ),
                 
                 Container(
                   padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
                   child: ElevatedButton(onPressed: (){
-                    if (createEvent){
-                      /// create db record in EventList
-                      FirebaseFirestore.instance.collection('EventList')
-                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
-                          .set({});
-                      /// create db record in user subcollection 'createdEvents'
-                      FirebaseFirestore.instance.collection('users')
-                          .doc(FirebaseAuth.instance.currentUser?.uid)
-                          .collection('createdEvents')
-                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
-                          .set({});
-                      Navigator.pop(context);
-                    } else if (createEvent == false){
-                      /// update db reconrd in EventList
-                      FirebaseFirestore.instance.collection('EventList')
-                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
-                          .update({});
-                      /// update db record in user subcollection 'createdEvents'
-                      FirebaseFirestore.instance.collection('users')
-                          .doc(FirebaseAuth.instance.currentUser?.uid)
-                          .collection('createdEvents')
-                          .doc('${FirebaseAuth.instance.currentUser?.uid}_${DateTime.now().toString()}')
-                          .update({});
-                      Navigator.pop(context);
+                    if (_key.currentState!.validate()){
+                      if (createEvent){
+                        /// create db record in EventList
+                        FirebaseFirestore.instance.collection('eventList')
+                            .doc()
+                            .set({
+                          'eventName': eventNameController.text.trim(),
+                          'facilitator': FirebaseAuth.instance.currentUser?.uid,
+                          'date': selectedDate.toString(),
+                          'time': time.format(context).toString(),
+                          'category': selectedItem.toString(),
+                          'maxParticipants': int.parse(amountController.text.trim()),
+                          'queue': [],
+                          'participants': [FirebaseAuth.instance.currentUser?.uid]
+                        });
+                        /// create db record in user subcollection 'createdEvents'
+                        FirebaseFirestore.instance.collection('users')
+                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                            .collection('createdEvents')
+                            .doc()
+                            .set({
+                          'eventName': eventNameController.text.trim(),
+                          'date': selectedDate.toString(),
+                          'time': time.format(context).toString(),
+                          'category': selectedItem.toString(),
+                          'maxParticipants': int.parse(amountController.text.trim()),
+                          'participants': [FirebaseAuth.instance.currentUser?.uid]
+                        });
+                        Navigator.pop(context);
+                      } else if (createEvent == false){
+                        /// update db record in EventList
+                        FirebaseFirestore.instance.collection('eventList')
+                            .doc(widget.eventID)
+                            .update({
+                          'eventName': eventNameController.text.trim(),
+                          'date': selectedDate.toString(),
+                          'time': time.format(context).toString(),
+                          'category': selectedItem.toString(),
+                          'maxParticipants': int.parse(amountController.text.trim()),
+                        });
+                        /// update db record in user subcollection 'createdEvents'
+                        FirebaseFirestore.instance.collection('users')
+                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                            .collection('createdEvents')
+                            .doc()
+                            .update({
+                          'eventName': eventNameController.text.trim(),
+                          'date': selectedDate.toString(),
+                          'time': time.format(context).toString(),
+                          'category': selectedItem.toString(),
+                          'maxParticipants': int.parse(amountController.text.trim()),
+                        });
+                        Navigator.pop(context);
+                      }
                     }
                   },
                     child: Text(createEvent? "Opret event" : 'Gem redigering', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),

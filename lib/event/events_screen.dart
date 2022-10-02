@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:min_turnering/assets/event_card.dart';
 import 'package:min_turnering/event/create_edit_event.dart';
+import 'package:intl/intl.dart';
 import 'package:min_turnering/event/event_details.dart';
 import '../assets/bezier_clipper.dart';
 
@@ -12,6 +14,25 @@ class AllEventsScreen extends StatefulWidget {
 }
 
 class _AllEventsScreenState extends State<AllEventsScreen> {
+  get events => FirebaseFirestore.instance.collection('eventList');
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Map icon = {
+    'Fodbold': Icons.sports_soccer,
+    'Padel': Icons.sports_tennis,
+    'Basketbold': Icons.sports_basketball,
+    'Andet': Icons.sports_handball
+  };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +45,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         toolbarHeight: 100,
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageEventScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageEventScreen(create: true)));
       }, backgroundColor: const Color(0xFF42BEA5), child: Icon(Icons.add)),
       body: ListView(
         shrinkWrap: true,
@@ -43,18 +64,28 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               padding: EdgeInsets.only(left: 20, top: 10, bottom: 20),
               child: Text("Kommende events",
                 style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
-          ListView(
-            shrinkWrap: true,
-              children: [
-                EventCard(text: 'Basketball',
-                    day: '29/09/22',
-                    icon: Icon(Icons.sports_baseball, size: 20, color: Colors.grey,),
-                    time: '16:30',
-                    onPressed: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const EventDetailsScreen()));
-                    })
-              ],
-          ),
+          StreamBuilder(
+              stream: events.snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  return Column(
+                    children: snapshot.data!.docs.map((event){
+                      return EventCard(
+                          text: event['eventName'],
+                          day: DateFormat('dd/MM/yyyy').format(DateTime.parse(event['date'])),
+                          icon: Icon(icon[event['category']]),
+                          time: event['time'],
+                          onPressed: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetailsScreen(eventID: event.id)));
+                          });
+                    }).toList(),
+                  );
+                } else if (snapshot.hasError) {
+                  return Icon(Icons.error_outline);
+                } else {
+                  return CircularProgressIndicator.adaptive();
+                }
+              })
         ],
       ),
     );

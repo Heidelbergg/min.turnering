@@ -31,8 +31,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # Add this line
+    sdk: flutter
 
+  # Google
   google_fonts: ^3.0.1
+
+  # Loading
+  widget_loading: ^0.3.2
 
   #Firebase
   firebase_auth: ^3.10.0

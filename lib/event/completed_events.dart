@@ -40,18 +40,11 @@ class _CompletedEventsScreenState extends State<CompletedEventsScreen> {
               padding: EdgeInsets.only(left: 20, top: 10, bottom: 20),
               child: Text("Events du har oprettet",
                 style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
-          EventCard(text: 'Amerikansk Fodbold', day: '17/09/2022', icon: Icon(Icons.sports_football, color: Colors.grey,), time: '17:00', onPressed:(){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const EventDetailsScreen()));
-          }),
           Container(
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.only(left: 20, top: 20, bottom: 20),
               child: Text("Tidligere events",
                 style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
-          EventCard(text: 'Fodbold', day: '25/09/2022', icon: Icon(Icons.sports_soccer, color: Colors.grey,), time: '15:00', onPressed:(){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const EventDetailsScreen()));
-          }),
-
         ],
       ),
     );
