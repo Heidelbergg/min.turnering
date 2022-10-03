@@ -215,12 +215,12 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                 Container(
                   padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
                   child: ElevatedButton(onPressed: (){
+                    var ref = FirebaseFirestore.instance.collection('eventList').doc();
+
                     if (_key.currentState!.validate()){
                       if (createEvent){
                         /// create db record in EventList
-                        FirebaseFirestore.instance.collection('eventList')
-                            .doc()
-                            .set({
+                        ref.set({
                           'eventName': eventNameController.text.trim(),
                           'facilitator': FirebaseAuth.instance.currentUser?.uid,
                           'date': selectedDate.toString(),
@@ -230,36 +230,17 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                           'queue': [],
                           'participants': [FirebaseAuth.instance.currentUser?.uid]
                         });
-                        /// create db record in user subcollection 'createdEvents'
+                        /// create db reference in user subcollection 'createdEvents'
                         FirebaseFirestore.instance.collection('users')
                             .doc(FirebaseAuth.instance.currentUser?.uid)
                             .collection('createdEvents')
                             .doc()
-                            .set({
-                          'eventName': eventNameController.text.trim(),
-                          'date': selectedDate.toString(),
-                          'time': time.format(context).toString(),
-                          'category': selectedItem.toString(),
-                          'maxParticipants': int.parse(amountController.text.trim()),
-                          'participants': [FirebaseAuth.instance.currentUser?.uid]
-                        });
+                            .set({'reference': FirebaseFirestore.instance.collection('eventList').doc(ref.id)});
                         Navigator.pop(context);
                       } else if (createEvent == false){
                         /// update db record in EventList
                         FirebaseFirestore.instance.collection('eventList')
                             .doc(widget.eventID)
-                            .update({
-                          'eventName': eventNameController.text.trim(),
-                          'date': selectedDate.toString(),
-                          'time': time.format(context).toString(),
-                          'category': selectedItem.toString(),
-                          'maxParticipants': int.parse(amountController.text.trim()),
-                        });
-                        /// update db record in user subcollection 'createdEvents'
-                        FirebaseFirestore.instance.collection('users')
-                            .doc(FirebaseAuth.instance.currentUser?.uid)
-                            .collection('createdEvents')
-                            .doc()
                             .update({
                           'eventName': eventNameController.text.trim(),
                           'date': selectedDate.toString(),
