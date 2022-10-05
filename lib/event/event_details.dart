@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:widget_loading/widget_loading.dart';
@@ -16,14 +17,13 @@ class EventDetailsScreen extends StatefulWidget {
 
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool isCompleted = false;
+  bool isParticipated = false;
   bool loading = true;
+  bool editable = false;
 
-  late String eventName = "";
-  late String eventType = "";
-  late String eventTime = "";
-  late String eventDate = "";
-  late String participants = "";
-  late String queue = "";
+  late String eventName, facilitator, eventType, eventID, eventTime, participantsLength, queue, eventDate, name = "";
+  late int maxParticipants = 0;
+  late List participants = [];
   late Icon icon = const Icon(null);
 
   Map icons = {
@@ -40,17 +40,35 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         eventType = value['category'];
         eventTime = value['time'];
         eventDate = value['date'];
-        participants = value['participants'].length.toString();
+        facilitator = value['facilitator'];
+        eventID = value.id;
+        maxParticipants = value['maxParticipants'];
+        participantsLength = value['participants'].length.toString();
+        participants = value['participants'];
         queue = value['queue'].length.toString();
         icon = Icon(icons[value['category']],);
 
-        if (value['facilitator'] == FirebaseAuth.instance.currentUser?.uid){
-          /// navigate to edit event
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ManageEventScreen(create: false, eventID: value.id,)));
+        if (facilitator == FirebaseAuth.instance.currentUser?.uid){
+          editable = true;
         }
-        loading = false;
+        if (participants.contains(FirebaseAuth.instance.currentUser?.uid)){
+          isParticipated = true;
+        }
+        DateTime date = DateTime.parse(eventDate);
+
+        if (date.isBefore(DateTime.now())){
+          isCompleted = true;
+        }
+
+        FirebaseFirestore.instance.collection('users').doc(facilitator).get().then((value) {
+          setState((){
+            name = value['name'];
+            loading = false;
+          });
+        });
       });
     });
+
   }
 
   @override
@@ -92,11 +110,27 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               padding: EdgeInsets.only(top: 50),
               child: BackButton(color: Colors.grey,)
             ),
-            Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 15, bottom: 30, top: 5,),
-                child: Text(eventName,
-                  style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
+            Padding(padding: EdgeInsets.only(top: 10)),
+            Row(
+              children: [
+                Container(
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(left: 15),
+                    child: Text(eventName,
+                      style: TextStyle(color: Colors.black, fontSize: 34, fontWeight: FontWeight.w700),)),
+                const Spacer(),
+                editable? Container(
+                    padding: EdgeInsets.only(right: 10),
+                    child: TextButton(onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ManageEventScreen(create: false, eventID: eventID,))).then((value) {
+                        setState(() {
+                          _getEventDetails();
+                        });
+                      });
+                    }, child: Text('Rediger', style: TextStyle(color: Colors.blue),))) : Container()
+              ],
+            ),
+            Padding(padding: EdgeInsets.only(bottom: 40)),
             Row(
               children: [
                 Container(
@@ -108,7 +142,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   padding: EdgeInsets.only(right: 10),
                     child: TextButton(onPressed: () {
                       // see participants
-                    }, child: Text("${participants} deltagere (${queue}) i kø", style: TextStyle(color: Colors.grey, fontSize: 14),),))
+                    }, child: Text("${participantsLength} deltagere (${queue} i kø)", style: TextStyle(color: Colors.blue, fontSize: 14),),))
               ],
             ),
             Container(
@@ -117,25 +151,91 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: 10, top: 20, left: 20),
-                child: Text("Arrangeret af: ${widget.eventID}", style: TextStyle(color: Colors.grey, fontSize: 14))),
+                child: Text("Arrangeret af: ${name}", style: TextStyle(color: Colors.grey, fontSize: 14))),
             Container(
               alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: 10, top: 20, left: 20),
                 child: Text('${DateFormat.EEEE('da_DK').format(DateTime.parse(eventDate))} ${eventTime}', style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w700))),
-            Container(
+            editable == true || isParticipated == true? Container() : Container(
               padding: EdgeInsets.only(right: 10, top: 60, left: 10),
               child: ElevatedButton(onPressed: (){
-                //Navigator.push(context, MaterialPageRoute(builder: (context) => const AllEventsScreen()));
+                if (isCompleted == false && isParticipated == false && (participantsLength.length) < maxParticipants){
+                  /// save to eventList db
+                  FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                    'participants' : FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid])
+                  });
+                  /// save to participatedEvents db subcollection
+                  var ref = FirebaseFirestore
+                      .instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser?.uid)
+                      .collection('participatedEvents')
+                      .doc();
+
+                  ref.set({
+                    'reference': widget.eventID,
+                    'id': ref.id.toString()
+                  });
+                  Navigator.pop(context);
+                } else if (isCompleted == true){
+                  /// show snackbar
+                  return;
+                } else if ((participantsLength.length) >= maxParticipants) {
+                  /// add to queue
+                }
               },
-                child: Text(isCompleted? "Event udført" : "Deltag", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: isCompleted? Colors.white70 : Colors.white)),
+                child: Text("Deltag", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(const Size(300, 60)),
-                    backgroundColor: MaterialStateProperty.all<Color>(isCompleted? Colors.grey : const Color(0xFF42BEA5)),
+                    backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
                     elevation: MaterialStateProperty.all(3),
                     shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
                 ),),
             ),
-          ],
+            isCompleted? Container(
+              padding: EdgeInsets.only(right: 10, top: 60, left: 10),
+              child: ElevatedButton(onPressed: (){},
+                child: Text("Event udført", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white70)),
+                style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(300, 60)),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                    elevation: MaterialStateProperty.all(3),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
+                ),),
+            ) : Container(),
+            isParticipated == true && isCompleted == false && editable == false? Container(
+              padding: EdgeInsets.only(right: 10, top: 60, left: 10),
+              child: ElevatedButton(onPressed: () async {
+                if (isCompleted == false && isParticipated == true){
+                  /// remove from eventList db
+                  FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                    'participants': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                  });
+                  /// remove document from participatedEvents
+                  var participatedDocs = await FirebaseFirestore.instance.collection('users')
+                      .doc(FirebaseAuth.instance.currentUser?.uid)
+                      .collection('participatedEvents').get();
+
+                  for (var docs in participatedDocs.docs){
+                    if (widget.eventID == docs['reference'] && docs['id'] == docs.id){
+                      docs.reference.delete();
+                    }
+                  }
+                  Navigator.pop(context);
+                } else if (isCompleted == true || isParticipated == true){
+                  /// show snackbar
+                  return;
+                }
+              },
+                child: Text('Afmeld', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
+                style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(300, 60)),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                    elevation: MaterialStateProperty.all(3),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
+                ),),
+            ) : Container(),
+        ],
         ),
       ),
     );

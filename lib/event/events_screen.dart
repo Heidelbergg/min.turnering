@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:min_turnering/assets/event_card.dart';
 import 'package:min_turnering/event/create_edit_event.dart';
@@ -75,6 +76,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                           day: DateFormat('dd/MM/yyyy').format(DateTime.parse(event['date'])),
                           icon: Icon(icon[event['category']]),
                           time: event['time'],
+                          check: event['participants'].contains(FirebaseAuth.instance.currentUser?.uid) ? true : false,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetailsScreen(eventID: event.id)));
                           });

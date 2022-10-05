@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:min_turnering/event/events_screen.dart';
 
 class ManageEventScreen extends StatefulWidget {
   final bool create;
@@ -57,9 +56,13 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
       appBar: AppBar(
         elevation: 3,
         backgroundColor: const Color(0xFF42BEA5),
-        title: Text(createEvent? 'Opret event' : 'Rediger event', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
+        title: Text(createEvent? 'Opret event' : 'Rediger event', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
+        actions: [createEvent? Container() : IconButton(onPressed: (){
+          /// show alertBox before deletion
+
+        }, icon: const Icon(Icons.delete_outline, color: Colors.red, size: 28,))],
         toolbarHeight: 75,
-        leading: BackButton(),
+        leading: const BackButton(),
       ),
       body: Form(
         key: _key,
@@ -67,8 +70,8 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
           children: [
             Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 20, top: 40, bottom: 20),
-                child: Text("Udfyld nedenstående felter for dit event.",
+                padding: const EdgeInsets.only(left: 20, top: 40, bottom: 20),
+                child: const Text("Udfyld nedenstående felter for dit event.",
                   style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w400),)),
             Container(
                 padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
@@ -78,10 +81,10 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                     controller: eventNameController,
                     decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                       enabledBorder:
-                      OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent),
-                          borderRadius: BorderRadius.circular(15)), labelText: 'Eventnavn', labelStyle: TextStyle(color: Colors.black),
+                      OutlineInputBorder(borderSide: const BorderSide(color: Colors.transparent),
+                          borderRadius: BorderRadius.circular(15)), labelText: 'Eventnavn', labelStyle: const TextStyle(color: Colors.black),
                       focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black,),
+                          borderSide: const BorderSide(color: Colors.black,),
                           borderRadius: BorderRadius.circular(15)
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -92,7 +95,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
               children: [
                 Container(
                   width: MediaQuery.of(context).size.width / 2,
-                    padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
+                    padding: const EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
                     child: InkWell(
                       onTap: () async {
                         selectedDate = (await showDatePicker(
@@ -216,7 +219,6 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                   padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
                   child: ElevatedButton(onPressed: (){
                     var ref = FirebaseFirestore.instance.collection('eventList').doc();
-
                     if (_key.currentState!.validate()){
                       if (createEvent){
                         /// create db record in EventList
@@ -235,7 +237,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                             .doc(FirebaseAuth.instance.currentUser?.uid)
                             .collection('createdEvents')
                             .doc()
-                            .set({'reference': FirebaseFirestore.instance.collection('eventList').doc(ref.id)});
+                            .set({'reference': ref.id.toString()});
                         Navigator.pop(context);
                       } else if (createEvent == false){
                         /// update db record in EventList
@@ -252,13 +254,13 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                       }
                     }
                   },
-                    child: Text(createEvent? "Opret event" : 'Gem redigering', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
                     style: ButtonStyle(
                         minimumSize: MaterialStateProperty.all(const Size(200, 60)),
                         backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
                         elevation: MaterialStateProperty.all(3),
                         shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
-                    ),),
+                    ),
+                    child: Text(createEvent? "Opret event" : 'Gem redigering', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),),
                 ),
               ],
             ),
