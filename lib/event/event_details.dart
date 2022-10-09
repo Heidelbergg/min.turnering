@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:widget_loading/widget_loading.dart';
 
+import '../main_screens/navigation.dart';
 import 'create_edit_event.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -176,12 +178,38 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     'reference': widget.eventID,
                     'id': ref.id.toString()
                   });
-                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                  Flushbar(
+                      margin: EdgeInsets.all(10),
+                      borderRadius: BorderRadius.circular(10),
+                      title: 'Deltag',
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 3),
+                      message: 'Du er nu deltaget i eventet',
+                      flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                 } else if (isCompleted == true){
                   /// show snackbar
+                  Flushbar(
+                      margin: EdgeInsets.all(10),
+                      borderRadius: BorderRadius.circular(10),
+                      title: 'Event',
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 3),
+                      message: 'Eventet er ikke tilgængeligt',
+                      flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                   return;
                 } else if ((participantsLength.length) >= maxParticipants) {
                   /// add to queue
+
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                  Flushbar(
+                      margin: EdgeInsets.all(10),
+                      borderRadius: BorderRadius.circular(10),
+                      title: 'Kø',
+                      backgroundColor: Colors.blue,
+                      duration: Duration(seconds: 3),
+                      message: 'Du er blevet sat i kø til eventet',
+                      flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                 }
               },
                 child: Text("Deltag", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
@@ -221,7 +249,15 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       docs.reference.delete();
                     }
                   }
-                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                  Flushbar(
+                      margin: EdgeInsets.all(10),
+                      borderRadius: BorderRadius.circular(10),
+                      title: 'Afmeldt event',
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 3),
+                      message: 'Du er nu afmeldt af eventet',
+                      flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                 } else if (isCompleted == true || isParticipated == true){
                   /// show snackbar
                   return;

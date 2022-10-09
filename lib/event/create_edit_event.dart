@@ -1,7 +1,12 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_dialogs/material_dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
+import 'package:material_dialogs/widgets/buttons/icon_outline_button.dart';
+import 'package:min_turnering/main_screens/navigation.dart';
 
 class ManageEventScreen extends StatefulWidget {
   final bool create;
@@ -59,7 +64,59 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
         title: Text(createEvent? 'Opret event' : 'Rediger event', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
         actions: [createEvent? Container() : IconButton(onPressed: (){
           /// show alertBox before deletion
+          Dialogs.bottomMaterialDialog(
+              msg: 'Er du sikker? Du kan ikke fortryde denne handling',
+              title: 'Slet event',
+              context: context,
+              actions: [
+                IconsOutlineButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  text: 'Anuller',
+                  iconData: Icons.cancel_outlined,
+                  textStyle: TextStyle(color: Colors.grey),
+                  iconColor: Colors.grey,
+                ),
+                IconsButton(
+                  onPressed: () async {
+                    var createdDocs = await FirebaseFirestore.instance.collection('users')
+                        .doc(FirebaseAuth.instance.currentUser?.uid)
+                        .collection('createdEvents').get();
+                    var participated = await FirebaseFirestore.instance.collection('users')
+                        .doc(FirebaseAuth.instance.currentUser?.uid)
+                        .collection('participatedEvents').get();
 
+                    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).delete();
+
+                    for (var docs in createdDocs.docs){
+                      if (widget.eventID == docs['reference'] && docs['id'] == docs.id){
+                        docs.reference.delete();
+                      }
+                    }
+                    for (var docs in participated.docs){
+                      if (widget.eventID == docs['reference'] && docs['id'] == docs.id){
+                        docs.reference.delete();
+                      }
+                    }
+                    if(!mounted)return;
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                    Flushbar(
+                        margin: EdgeInsets.all(10),
+                        borderRadius: BorderRadius.circular(10),
+                        title: 'Dit event',
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                        message: 'Eventet er blevet fjernet succesfuldt',
+                        flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                  },
+                  text: 'Slet',
+                  iconData: Icons.delete,
+                  color: Colors.red,
+                  textStyle: TextStyle(color: Colors.white),
+                  iconColor: Colors.white,
+                ),
+              ]);
         }, icon: const Icon(Icons.delete_outline, color: Colors.red, size: 28,))],
         toolbarHeight: 75,
         leading: const BackButton(),
@@ -233,12 +290,26 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                           'participants': [FirebaseAuth.instance.currentUser?.uid]
                         });
                         /// create db reference in user subcollection 'createdEvents'
-                        FirebaseFirestore.instance.collection('users')
+                        var createdRef = FirebaseFirestore
+                            .instance
+                            .collection('users')
                             .doc(FirebaseAuth.instance.currentUser?.uid)
                             .collection('createdEvents')
-                            .doc()
-                            .set({'reference': ref.id.toString()});
-                        Navigator.pop(context);
+                            .doc();
+
+                        createdRef.set({
+                          'id': createdRef.id.toString(),
+                          'reference': ref.id.toString()
+                        });
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                        Flushbar(
+                            margin: EdgeInsets.all(10),
+                            borderRadius: BorderRadius.circular(10),
+                            title: 'Nyt event',
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                            message: 'Eventet er blevet oprettet succesfuldt',
+                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                       } else if (createEvent == false){
                         /// update db record in EventList
                         FirebaseFirestore.instance.collection('eventList')
@@ -250,7 +321,15 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                           'category': selectedItem.toString(),
                           'maxParticipants': int.parse(amountController.text.trim()),
                         });
-                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                        Flushbar(
+                            margin: EdgeInsets.all(10),
+                            borderRadius: BorderRadius.circular(10),
+                            title: 'Dit event',
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                            message: 'Eventet er blevet opdateret succesfuldt',
+                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                       }
                     }
                   },

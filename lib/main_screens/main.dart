@@ -6,8 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:min_turnering/main_screens/navigation.dart';
 import 'package:min_turnering/main_screens/splash_screen.dart';
 
-import '../authentication/login_screen.dart';
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();

@@ -40,6 +40,10 @@ dependencies:
   # Loading
   widget_loading: ^0.3.2
 
+  # Widgets
+  material_dialogs: ^1.1.3
+  another_flushbar: ^1.12.29
+
   #Firebase
   firebase_auth: ^3.10.0
   cloud_firestore: ^3.4.9

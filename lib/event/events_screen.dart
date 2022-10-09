@@ -71,15 +71,19 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                 if (snapshot.hasData) {
                   return Column(
                     children: snapshot.data!.docs.map((event){
-                      return EventCard(
-                          text: event['eventName'],
-                          day: DateFormat('dd/MM/yyyy').format(DateTime.parse(event['date'])),
-                          icon: Icon(icon[event['category']]),
-                          time: event['time'],
-                          check: event['participants'].contains(FirebaseAuth.instance.currentUser?.uid) ? true : false,
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetailsScreen(eventID: event.id)));
-                          });
+                      if (DateTime.parse(event['date']).isAfter(DateTime.now())){
+                        return EventCard(
+                            text: event['eventName'],
+                            day: DateFormat('dd/MM/yyyy').format(DateTime.parse(event['date'])),
+                            icon: Icon(icon[event['category']]),
+                            time: event['time'],
+                            check: event['participants'].contains(FirebaseAuth.instance.currentUser?.uid) ? true : false,
+                            onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetailsScreen(eventID: event.id)));
+                            });
+                      } else {
+                        return Container();
+                      }
                     }).toList(),
                   );
                 } else if (snapshot.hasError) {
