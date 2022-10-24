@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -106,8 +107,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     } on FirebaseAuthException catch(e){
                       if(e.code == "user-not-found"){
                         Navigator.pop(context);
+                        Flushbar(
+                            margin: EdgeInsets.all(10),
+                            borderRadius: BorderRadius.circular(10),
+                            title: 'Login',
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 3),
+                            message: 'Bruger eksisterer ikke',
+                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                       } else {
                         Navigator.pop(context);
+                        Flushbar(
+                            margin: EdgeInsets.all(10),
+                            borderRadius: BorderRadius.circular(10),
+                            title: 'Login',
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 3),
+                            message: 'Forkert brugernavn eller adgangskode',
+                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                       }
                     }
                   }

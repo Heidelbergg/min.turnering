@@ -272,74 +272,76 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                         hintText: amount.toString(), hintStyle: TextStyle(color: Colors.grey),),),
                 ),
                 
-                Container(
-                  padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
-                  child: ElevatedButton(onPressed: (){
-                    var ref = FirebaseFirestore.instance.collection('eventList').doc();
-                    if (_key.currentState!.validate()){
-                      if (createEvent){
-                        /// create db record in EventList
-                        ref.set({
-                          'eventName': eventNameController.text.trim(),
-                          'facilitator': FirebaseAuth.instance.currentUser?.uid,
-                          'date': selectedDate.toString(),
-                          'time': time.format(context).toString(),
-                          'category': selectedItem.toString(),
-                          'maxParticipants': int.parse(amountController.text.trim()),
-                          'queue': [],
-                          'participants': [FirebaseAuth.instance.currentUser?.uid]
-                        });
-                        /// create db reference in user subcollection 'createdEvents'
-                        var createdRef = FirebaseFirestore
-                            .instance
-                            .collection('users')
-                            .doc(FirebaseAuth.instance.currentUser?.uid)
-                            .collection('createdEvents')
-                            .doc();
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(right: 15, top: 20, bottom: 20),
+                    child: ElevatedButton(onPressed: (){
+                      var ref = FirebaseFirestore.instance.collection('eventList').doc();
+                      if (_key.currentState!.validate()){
+                        if (createEvent){
+                          /// create db record in EventList
+                          ref.set({
+                            'eventName': eventNameController.text.trim(),
+                            'facilitator': FirebaseAuth.instance.currentUser?.uid,
+                            'date': selectedDate.toString(),
+                            'time': time.format(context).toString(),
+                            'category': selectedItem.toString(),
+                            'maxParticipants': int.parse(amountController.text.trim()),
+                            'queue': [],
+                            'participants': [FirebaseAuth.instance.currentUser?.uid]
+                          });
+                          /// create db reference in user subcollection 'createdEvents'
+                          var createdRef = FirebaseFirestore
+                              .instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser?.uid)
+                              .collection('createdEvents')
+                              .doc();
 
-                        createdRef.set({
-                          'id': createdRef.id.toString(),
-                          'reference': ref.id.toString()
-                        });
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
-                        Flushbar(
-                            margin: EdgeInsets.all(10),
-                            borderRadius: BorderRadius.circular(10),
-                            title: 'Nyt event',
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 3),
-                            message: 'Eventet er blevet oprettet succesfuldt',
-                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
-                      } else if (createEvent == false){
-                        /// update db record in EventList
-                        FirebaseFirestore.instance.collection('eventList')
-                            .doc(widget.eventID)
-                            .update({
-                          'eventName': eventNameController.text.trim(),
-                          'date': selectedDate.toString(),
-                          'time': time.format(context).toString(),
-                          'category': selectedItem.toString(),
-                          'maxParticipants': int.parse(amountController.text.trim()),
-                        });
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
-                        Flushbar(
-                            margin: EdgeInsets.all(10),
-                            borderRadius: BorderRadius.circular(10),
-                            title: 'Dit event',
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 3),
-                            message: 'Eventet er blevet opdateret succesfuldt',
-                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                          createdRef.set({
+                            'id': createdRef.id.toString(),
+                            'reference': ref.id.toString()
+                          });
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                          Flushbar(
+                              margin: EdgeInsets.all(10),
+                              borderRadius: BorderRadius.circular(10),
+                              title: 'Nyt event',
+                              backgroundColor: Colors.green,
+                              duration: Duration(seconds: 3),
+                              message: 'Eventet er blevet oprettet succesfuldt',
+                              flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                        } else if (createEvent == false){
+                          /// update db record in EventList
+                          FirebaseFirestore.instance.collection('eventList')
+                              .doc(widget.eventID)
+                              .update({
+                            'eventName': eventNameController.text.trim(),
+                            'date': selectedDate.toString(),
+                            'time': time.format(context).toString(),
+                            'category': selectedItem.toString(),
+                            'maxParticipants': int.parse(amountController.text.trim()),
+                          });
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                          Flushbar(
+                              margin: EdgeInsets.all(10),
+                              borderRadius: BorderRadius.circular(10),
+                              title: 'Dit event',
+                              backgroundColor: Colors.green,
+                              duration: Duration(seconds: 3),
+                              message: 'Eventet er blevet opdateret succesfuldt',
+                              flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                        }
                       }
-                    }
-                  },
-                    style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.all(const Size(200, 60)),
-                        backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
-                        elevation: MaterialStateProperty.all(3),
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
-                    ),
-                    child: Text(createEvent? "Opret event" : 'Gem redigering', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),),
+                    },
+                      style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all(const Size(200, 60)),
+                          backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF42BEA5)),
+                          elevation: MaterialStateProperty.all(3),
+                          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
+                      ),
+                      child: Text(createEvent? "Opret event" : 'Gem redigering', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),),
+                  ),
                 ),
               ],
             ),

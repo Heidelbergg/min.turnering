@@ -92,7 +92,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       body: loading? CircularWidgetLoading(
         dotColor: const Color(0xFF42BEA5),
           child: Container()) : Container(
-        height: MediaQuery.of(context).size.height / 1.75,
+        height: MediaQuery.of(context).size.height / 1.5,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -162,7 +162,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               padding: EdgeInsets.only(right: 10, top: 60, left: 10),
               child: ElevatedButton(onPressed: (){
                 if (isCompleted == false && isParticipated == false && (participantsLength.length) < maxParticipants){
-                  /// save to eventList db
+                  /// participate the user and save to eventList db
                   FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
                     'participants' : FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid])
                   });
@@ -200,7 +200,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   return;
                 } else if ((participantsLength.length) >= maxParticipants) {
                   /// add to queue
-
+                  FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                    'queue': FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid])
+                  });
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
                   Flushbar(
                       margin: EdgeInsets.all(10),
@@ -208,7 +210,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       title: 'Kø',
                       backgroundColor: Colors.blue,
                       duration: Duration(seconds: 3),
-                      message: 'Du er blevet sat i kø til eventet',
+                      message: 'Du er blevet sat i kø til eventet, da eventet er fuldt booket',
                       flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                 }
               },
@@ -249,6 +251,26 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       docs.reference.delete();
                     }
                   }
+
+                  /// check whether queue contains any UIDS
+                  /// adds the last item to the participated list (moves user from queue to participation)
+                  String queueItemUID;
+                  FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
+                    if (value['participants'].length < value['maxParticipants'] && value['queue'].isNotEmpty){
+                      queueItemUID = value['queue'].first;
+
+                      FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                        'participants': FieldValue.arrayUnion([queueItemUID]),
+                      });
+
+                      /// remove the UID after it has been updated in the participants List
+                      FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                        'queue': FieldValue.arrayRemove([queueItemUID])
+                      });
+
+                    }
+                  });
+                  if (!mounted) return;
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
                   Flushbar(
                       margin: EdgeInsets.all(10),
