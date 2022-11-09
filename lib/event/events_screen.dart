@@ -31,7 +31,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     'Fodbold': Icons.sports_soccer,
     'Padel': Icons.sports_tennis,
     'Basketbold': Icons.sports_basketball,
-    'Andet': Icons.sports_handball
+    'Andet': Icons.people
   };
 
   @override

@@ -31,7 +31,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     'Fodbold': Icons.sports_soccer,
     'Padel': Icons.sports_tennis,
     'Basketbold': Icons.sports_basketball,
-    'Andet': Icons.sports_handball
+    'Andet': Icons.people
   };
 
   _getEventDetails(){
@@ -49,8 +49,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         queue = value['queue'].length.toString();
         value['queue'].contains(FirebaseAuth.instance.currentUser?.uid) ? isInQueue = true : null;
         icon = Icon(icons[value['category']],);
-
-        print(participantsLength);
 
         if (facilitator == FirebaseAuth.instance.currentUser?.uid){
           editable = true;
