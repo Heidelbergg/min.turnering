@@ -1,11 +1,9 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:widget_loading/widget_loading.dart';
-
 import '../main_screens/navigation.dart';
 import 'create_edit_event.dart';
 
@@ -23,8 +21,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool loading = true;
   bool editable = false;
 
-  late String eventName, facilitator, eventType, eventID, eventTime, participantsLength, queue, eventDate, name = "";
-  late int maxParticipants = 0;
+  late String eventName, facilitator, eventType, eventID, eventTime, queue, eventDate, name = "";
+  late bool isInQueue = false;
+  late int maxParticipants, participantsLength = 0;
   late List participants = [];
   late Icon icon = const Icon(null);
 
@@ -45,10 +44,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         facilitator = value['facilitator'];
         eventID = value.id;
         maxParticipants = value['maxParticipants'];
-        participantsLength = value['participants'].length.toString();
+        participantsLength = int.parse(value['participants'].length.toString());
         participants = value['participants'];
         queue = value['queue'].length.toString();
+        value['queue'].contains(FirebaseAuth.instance.currentUser?.uid) ? isInQueue = true : null;
         icon = Icon(icons[value['category']],);
+
+        print(participantsLength);
 
         if (facilitator == FirebaseAuth.instance.currentUser?.uid){
           editable = true;
@@ -92,7 +94,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       body: loading? CircularWidgetLoading(
         dotColor: const Color(0xFF42BEA5),
           child: Container()) : Container(
-        height: MediaQuery.of(context).size.height / 1.5,
+        height: 600,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -158,10 +160,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: 10, top: 20, left: 20),
                 child: Text('${DateFormat.EEEE('da_DK').format(DateTime.parse(eventDate))} ${eventTime}', style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w700))),
-            editable == true || isParticipated == true? Container() : Container(
+            editable == true || isParticipated == true || isInQueue? Container() : Container(
               padding: EdgeInsets.only(right: 10, top: 60, left: 10),
               child: ElevatedButton(onPressed: (){
-                if (isCompleted == false && isParticipated == false && (participantsLength.length) < maxParticipants){
+                if (isCompleted == false && isParticipated == false && participantsLength < maxParticipants){
                   /// participate the user and save to eventList db
                   FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
                     'participants' : FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid])
@@ -198,7 +200,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       message: 'Eventet er ikke tilgængeligt',
                       flushbarPosition: FlushbarPosition.BOTTOM).show(context);
                   return;
-                } else if ((participantsLength.length) >= maxParticipants) {
+                } else if ((participantsLength) >= maxParticipants) {
                   /// add to queue
                   FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
                     'queue': FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid])
@@ -233,14 +235,35 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))
                 ),),
             ) : Container(),
-            isParticipated == true && isCompleted == false && editable == false? Container(
+            (isParticipated == true || isInQueue) && isCompleted == false && editable == false? Container(
               padding: EdgeInsets.only(right: 10, top: 60, left: 10),
               child: ElevatedButton(onPressed: () async {
-                if (isCompleted == false && isParticipated == true){
+                if (isCompleted == false && isParticipated == true || isInQueue){
                   /// remove from eventList db
-                  FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
-                    'participants': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
-                  });
+                  if (!isInQueue){
+                    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                      'participants': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                    });
+                    /// check whether queue contains any UIDS
+                    /// adds the last item to the participated list (moves user from queue to participation)
+                    String queueItemUID;
+                    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
+                      if (value['participants'].length < value['maxParticipants'] && value['queue'].isNotEmpty){
+                        queueItemUID = value['queue'].first;
+
+                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                          'participants': FieldValue.arrayUnion([queueItemUID]),
+                        });
+
+                        /// remove the UID after it has been updated in the participants List
+                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                          'queue': FieldValue.arrayRemove([queueItemUID])
+                        });
+
+                      }
+                    });
+                  }
+
                   /// remove document from participatedEvents
                   var participatedDocs = await FirebaseFirestore.instance.collection('users')
                       .doc(FirebaseAuth.instance.currentUser?.uid)
@@ -251,25 +274,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       docs.reference.delete();
                     }
                   }
-
-                  /// check whether queue contains any UIDS
-                  /// adds the last item to the participated list (moves user from queue to participation)
-                  String queueItemUID;
-                  FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
-                    if (value['participants'].length < value['maxParticipants'] && value['queue'].isNotEmpty){
-                      queueItemUID = value['queue'].first;
-
-                      FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
-                        'participants': FieldValue.arrayUnion([queueItemUID]),
-                      });
-
-                      /// remove the UID after it has been updated in the participants List
-                      FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
-                        'queue': FieldValue.arrayRemove([queueItemUID])
-                      });
-
-                    }
-                  });
+                  if (isInQueue){
+                    /// remove user from queue
+                    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                      'queue': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                    });
+                  }
                   if (!mounted) return;
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
                   Flushbar(

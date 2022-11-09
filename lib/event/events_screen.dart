@@ -78,6 +78,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                             icon: Icon(icon[event['category']]),
                             time: event['time'],
                             check: event['participants'].contains(FirebaseAuth.instance.currentUser?.uid) ? true : false,
+                            queue: event['queue'].contains(FirebaseAuth.instance.currentUser?.uid) ? true : false,
                             onPressed: (){
                               Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetailsScreen(eventID: event.id)));
                             });

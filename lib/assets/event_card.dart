@@ -5,7 +5,7 @@ class EventCard extends StatelessWidget {
   final String day;
   final String time;
   final Icon icon;
-  final bool check;
+  final bool check, queue;
   final Function() onPressed;
 
   const EventCard(
@@ -14,6 +14,7 @@ class EventCard extends StatelessWidget {
         required this.icon,
         required this.time,
         required this.check,
+        required this.queue,
         required this.onPressed,
         Key? key})
       : super(key: key);
@@ -82,7 +83,11 @@ class EventCard extends StatelessWidget {
             const Spacer(),
            check? Container(
               padding: EdgeInsets.only(right: 20),
-                child: Icon(Icons.check_circle, color: Colors.green, size: 28,)) : Container()
+                child: Icon(Icons.check_circle, color: Colors.green, size: 28,)) : Container(),
+            queue? Container(
+              padding: EdgeInsets.only(right: 20),
+              child: Icon(Icons.group_add, color: Colors.blue, size: 28,),
+            ) : Container()
           ],
         ),
       ),
