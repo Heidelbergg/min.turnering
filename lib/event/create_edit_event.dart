@@ -123,7 +123,8 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
       ),
       body: Form(
         key: _key,
-        child: Column(
+        child: ListView(
+          shrinkWrap: true,
           children: [
             Container(
                 alignment: Alignment.centerLeft,
