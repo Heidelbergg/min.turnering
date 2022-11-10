@@ -65,7 +65,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         FirebaseFirestore.instance.collection('users').doc(facilitator).get().then((value) {
           setState((){
             name = value['name'];
-            loading = false;
           });
         });
       });
@@ -74,12 +73,18 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   _getParticipants() async {
+    var userRef = await FirebaseFirestore.instance.collection('users').get();
     participantsNames = [];
-    for (var participated in participants){
-      FirebaseFirestore.instance.collection("users").doc(participated).get().then((value) {
-        participantsNames.add(value['name']);
-      });
+    for (var participant in participants){
+      for (var users in userRef.docs){
+        if (users.id == participant){
+          participantsNames.add(users['name']);
+        }
+      }
     }
+    setState(() {
+      loading = false;
+    });
   }
 
   _getqueue() async {
