@@ -177,12 +177,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text("Deltager i event", style: TextStyle(fontWeight: FontWeight.w700),),
+                              Text("Deltagere i event", style: TextStyle(fontWeight: FontWeight.w700),),
                               Padding(padding: EdgeInsets.only(top: 5)),
-                              Text(participantsNames.toString(), style: TextStyle(color: Colors.grey),),
-                              Text("I kø", style: TextStyle(fontWeight: FontWeight.w700),),
+                              Text(participantsNames.toString().replaceAll("[", "").replaceAll("]", ""), style: TextStyle(color: Colors.black.withOpacity(0.5)),),
+                              Padding(padding: EdgeInsets.only(top: 25)),
+                              Text("Deltagere i kø", style: TextStyle(fontWeight: FontWeight.w700),),
                               Padding(padding: EdgeInsets.only(top: 5)),
-                              Text(queueNames.toString(), style: TextStyle(color: Colors.grey),),
+                              Text(queueNames.toString().replaceAll("[", "").replaceAll("]", ""), style: TextStyle(color: Colors.black.withOpacity(0.5)),),
                             ],
                           ),
                           actions: [
