@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:min_turnering/main_screens/splash_screen.dart';
@@ -12,6 +13,9 @@ class ProfilePageScreen extends StatefulWidget {
 }
 
 class _ProfilePageScreenState extends State<ProfilePageScreen> {
+  get getUserInfo => FirebaseFirestore.instance.collection('users').doc(user!.uid);
+  User? user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +28,16 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
           children: [
             Text('Velkommen', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),),
             Padding(padding: EdgeInsets.only(top: 10)),
-            Text('[user_name]', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),),
+            StreamBuilder(
+                stream: getUserInfo.snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData){
+                    var name = snapshot.data as DocumentSnapshot;
+                    return Text(name['name'].toString(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),);
+                  }
+                  return SizedBox(height: 10, width: 10, child: Container(padding: const EdgeInsets.only(left: 50, right: 50, top: 50), child: CircularProgressIndicator.adaptive()));
+                }
+            ),
           ],
         ),
         toolbarHeight: 125,
