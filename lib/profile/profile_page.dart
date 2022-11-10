@@ -28,15 +28,18 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
           children: [
             Text('Velkommen', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),),
             Padding(padding: EdgeInsets.only(top: 10)),
-            StreamBuilder(
-                stream: getUserInfo.snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData){
-                    var name = snapshot.data as DocumentSnapshot;
-                    return Text(name['name'].toString(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),);
+            Container(
+              padding: EdgeInsets.only(left: 5),
+              child: StreamBuilder(
+                  stream: getUserInfo.snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData){
+                      var name = snapshot.data as DocumentSnapshot;
+                      return Text(name['name'].toString(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),);
+                    }
+                    return SizedBox(height: 10, width: 10, child: Container(padding: const EdgeInsets.only(left: 50, right: 50, top: 50), child: CircularProgressIndicator.adaptive()));
                   }
-                  return SizedBox(height: 10, width: 10, child: Container(padding: const EdgeInsets.only(left: 50, right: 50, top: 50), child: CircularProgressIndicator.adaptive()));
-                }
+              ),
             ),
           ],
         ),
