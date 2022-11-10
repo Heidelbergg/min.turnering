@@ -21,10 +21,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool loading = true;
   bool editable = false;
 
-  late String eventName, facilitator, eventType, eventID, eventTime, queue, eventDate, name = "";
+  late String eventName, facilitator, eventType, eventID, eventTime, eventDate, name = "";
   late bool isInQueue = false;
   late int maxParticipants, participantsLength = 0;
-  late List participants = [];
+  late List participants, queue, participantsNames, queueNames = [];
   late Icon icon = const Icon(null);
 
   Map icons = {
@@ -46,7 +46,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         maxParticipants = value['maxParticipants'];
         participantsLength = int.parse(value['participants'].length.toString());
         participants = value['participants'];
-        queue = value['queue'].length.toString();
+        queue = value['queue'];
         value['queue'].contains(FirebaseAuth.instance.currentUser?.uid) ? isInQueue = true : null;
         icon = Icon(icons[value['category']],);
 
@@ -73,12 +73,38 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   }
 
+  _getParticipants() async {
+    participantsNames = [];
+    for (var participated in participants){
+      FirebaseFirestore.instance.collection("users").doc(participated).get().then((value) {
+        participantsNames.add(value['name']);
+      });
+    }
+  }
+
+  _getqueue() async {
+    var userRef = await FirebaseFirestore.instance.collection('users').get();
+    queueNames = [];
+      for (var inQueue in queue){
+        for (var users in userRef.docs){
+          if (users.id == inQueue){
+            queueNames.add(users['name']);
+          }
+        }
+      }
+  }
+
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 1), (){
       _getEventDetails();
     });
+    Future.delayed(const Duration(seconds: 2), (){
+      _getqueue();
+      _getParticipants();
+    });
+
   }
 
   @override
@@ -143,8 +169,28 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 Container(
                   padding: EdgeInsets.only(right: 10),
                     child: TextButton(onPressed: () {
-                      // see participants
-                    }, child: Text("${participantsLength} deltagere (${queue} i kø)", style: TextStyle(color: Colors.blue, fontSize: 14),),))
+                      /// see participants
+                      showDialog(context: context, builder: (context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                          title: Text("Deltagere"),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("Deltager i event", style: TextStyle(fontWeight: FontWeight.w700),),
+                              Padding(padding: EdgeInsets.only(top: 5)),
+                              Text(participantsNames.toString(), style: TextStyle(color: Colors.grey),),
+                              Text("I kø", style: TextStyle(fontWeight: FontWeight.w700),),
+                              Padding(padding: EdgeInsets.only(top: 5)),
+                              Text(queueNames.toString(), style: TextStyle(color: Colors.grey),),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(onPressed: (){Navigator.of(context).pop();}, child: Text("OK"))
+                          ],
+                        );
+                      });
+                    }, child: Text("${participantsLength} deltagere (${queue.length.toString()} i kø)", style: TextStyle(color: Colors.blue, fontSize: 14),),))
               ],
             ),
             Container(
