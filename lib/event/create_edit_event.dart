@@ -27,6 +27,8 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   late TimeOfDay time = const TimeOfDay(hour: 09, minute: 00);
   late DateTime selectedDate = DateTime.now();
   late int amount = 2;
+  late List participantNames = [];
+  late List participants = [];
 
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
   final eventNameController = TextEditingController();
@@ -39,6 +41,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
     super.initState();
     createEvent? loading = false : Future.delayed(const Duration(seconds: 1), (){
       _loadDataFromDB();
+      _getParticipants();
     });
   }
 
@@ -54,10 +57,26 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
       timeController.text = value['time'];
       amountController.text = value['maxParticipants'].toString();
       amount = value['maxParticipants'];
+      participants = value['participants'];
 
       time = TimeOfDay(hour: int.parse(timeController.text.substring(0,2)), minute: int.parse(timeController.text.substring(3)));
       amount = int.parse(amountController.text);
     });
+    setState(() {
+      loading = false;
+    });
+  }
+
+  _getParticipants() async {
+    var userRef = await FirebaseFirestore.instance.collection('users').get();
+    participantNames = [];
+    for (var participant in participants){
+      for (var users in userRef.docs){
+        if (users.id == participant){
+          participantNames.add(users['name']);
+        }
+      }
+    }
     setState(() {
       loading = false;
     });
@@ -274,6 +293,44 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                     selectedItem = value;
                   });
                 },),
+            ),
+            createEvent? Container() : Container(
+              padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
+              child: InkWell(
+                onTap: () {
+                  /// TODO show alertdialog with textButton for the names - click on them prompts for removal of user
+                  showDialog(context: context, builder: (context) {
+                    return AlertDialog(
+                      title: Text("Deltagere"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: participants.map((e) {
+                          return TextButton(onPressed: (){
+                            /// Remove user
+
+                          }, child: Text(e, style: TextStyle(color: Colors.blue),));
+                        }).toList()
+                      ),
+                      actions: [
+                        TextButton(onPressed: (){Navigator.pop(context);}, child: Text("OK"))
+                      ],
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    );
+                  });
+                },
+                child: TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                    enabledBorder:
+                    OutlineInputBorder(borderSide: const BorderSide(color: Colors.transparent),
+                        borderRadius: BorderRadius.circular(15)), labelText: 'Deltagere', labelStyle: const TextStyle(color: Colors.black),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.black,),
+                        borderRadius: BorderRadius.circular(15)
+                    ),
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    hintText: participantNames.toString().replaceAll("[", "").replaceAll("]", ""), hintStyle: TextStyle(color: Colors.grey),),),
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
