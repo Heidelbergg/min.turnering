@@ -7,6 +7,7 @@ import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 import 'package:material_dialogs/widgets/buttons/icon_outline_button.dart';
 import 'package:min_turnering/main_screens/navigation.dart';
+import 'package:widget_loading/widget_loading.dart';
 
 class ManageEventScreen extends StatefulWidget {
   final bool create;
@@ -22,9 +23,10 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
 
   List<String> dropdownItems = ['Fodbold', 'Padel', 'Basketbold', 'Andet'];
   String? selectedItem = 'Fodbold';
-  late TimeOfDay time = const TimeOfDay(hour: 9, minute: 0);
-  late DateTime selectedDate = DateTime.now();
-  late String amount = '2';
+  bool loading = true;
+  late TimeOfDay time = TimeOfDay(hour: int.parse(timeController.text.substring(0,2)), minute: int.parse(timeController.text.substring(3)));
+  late DateTime selectedDate = DateTime.parse(dateController.text);
+  late int amount = amount;
 
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
   final eventNameController = TextEditingController();
@@ -35,12 +37,27 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   @override
   void initState() {
     super.initState();
-    amountController.text = '2';
+    Future.delayed(const Duration(seconds: 1), (){
+      _loadDataFromDB();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+  
+  _loadDataFromDB() {
+    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
+      eventNameController.text = value['eventName'];
+      dateController.text = value['date'];
+      timeController.text = value['time'];
+      amountController.text = value['maxParticipants'].toString();
+      amount = value['maxParticipants'];
+    });
+    setState(() {
+      loading = false;
+    });
   }
 
   String? validateName(String? name){
@@ -121,7 +138,9 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
         toolbarHeight: 75,
         leading: const BackButton(),
       ),
-      body: Form(
+      body: loading? CircularWidgetLoading(
+          dotColor: const Color(0xFF42BEA5),
+          child: Container()) :Form(
         key: _key,
         child: ListView(
           shrinkWrap: true,

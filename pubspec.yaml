@@ -45,11 +45,11 @@ dependencies:
   another_flushbar: ^1.12.29
 
   #Firebase
-  firebase_auth: ^3.10.0
-  cloud_firestore: ^3.4.9
-  firebase_core: ^1.23.0
-  firebase_storage: ^10.3.9
-  firebase_messaging: ^13.0.4
+  firebase_auth: ^4.1.2
+  cloud_firestore: ^4.0.5
+  firebase_core: ^2.2.0
+  firebase_storage: ^11.0.05
+  firebase_messaging: ^14.1.0
 
 
   # The following adds the Cupertino Icons font to your application.
