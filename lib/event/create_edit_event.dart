@@ -24,9 +24,9 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   List<String> dropdownItems = ['Fodbold', 'Padel', 'Basketbold', 'Andet'];
   String? selectedItem = 'Fodbold';
   bool loading = true;
-  late TimeOfDay time = TimeOfDay(hour: int.parse(timeController.text.substring(0,2)), minute: int.parse(timeController.text.substring(3)));
-  late DateTime selectedDate = DateTime.parse(dateController.text);
-  late int amount = amount;
+  late TimeOfDay time = const TimeOfDay(hour: 09, minute: 00);
+  late DateTime selectedDate = DateTime.now();
+  late int amount = 2;
 
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
   final eventNameController = TextEditingController();
@@ -37,7 +37,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 1), (){
+    createEvent? loading = false : Future.delayed(const Duration(seconds: 1), (){
       _loadDataFromDB();
     });
   }
@@ -50,10 +50,13 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   _loadDataFromDB() {
     FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
       eventNameController.text = value['eventName'];
-      dateController.text = value['date'];
+      dateController.text =  DateFormat('dd/MM/yyyy').format(DateTime.parse(value['date']));
       timeController.text = value['time'];
       amountController.text = value['maxParticipants'].toString();
       amount = value['maxParticipants'];
+
+      time = TimeOfDay(hour: int.parse(timeController.text.substring(0,2)), minute: int.parse(timeController.text.substring(3)));
+      amount = int.parse(amountController.text);
     });
     setState(() {
       loading = false;
@@ -193,6 +196,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                         )!;
                         setState(() {
                           selectedDate;
+                          dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
                         });
                       },
                       child: TextFormField(
@@ -230,6 +234,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                               initialTime: TimeOfDay(hour: 09, minute: 00)))!;
                       setState(() {
                         time;
+                        timeController.text = time.format(context);
                       });
                       },
                       child: TextFormField(
