@@ -1,3 +1,3 @@
 # min.turnering
 
-Opret og tilslut dig dine venners turneringer.
+Create events and add your friends to them, in easy and straightforward steps.
