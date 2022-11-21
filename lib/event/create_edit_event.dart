@@ -321,6 +321,8 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                                     onPressed: () async {
                                       /// Remove user remove from eventList db
                                       if (e == FirebaseAuth.instance.currentUser?.uid){
+                                        Navigator.pop(context);
+                                        Navigator.pop(context);
                                         Flushbar(
                                             margin: EdgeInsets.all(10),
                                             borderRadius: BorderRadius.circular(10),
@@ -449,6 +451,9 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                             'category': selectedItem.toString(),
                             'maxParticipants': int.parse(amountController.text.trim()),
                             'queue': [],
+                            'visibleFor': [FirebaseAuth.instance.currentUser?.uid],
+                            'location': '',
+                            'link': '',
                             'participants': [FirebaseAuth.instance.currentUser?.uid]
                           });
                           /// create db reference in user subcollection 'createdEvents'
