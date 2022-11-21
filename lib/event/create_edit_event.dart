@@ -7,6 +7,7 @@ import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 import 'package:material_dialogs/widgets/buttons/icon_outline_button.dart';
 import 'package:min_turnering/main_screens/navigation.dart';
+import 'package:widget_loading/widget_loading.dart';
 
 class ManageEventScreen extends StatefulWidget {
   final bool create;
@@ -22,9 +23,12 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
 
   List<String> dropdownItems = ['Fodbold', 'Padel', 'Basketbold', 'Andet'];
   String? selectedItem = 'Fodbold';
-  late TimeOfDay time = const TimeOfDay(hour: 9, minute: 0);
+  bool loading = true;
+  late TimeOfDay time = const TimeOfDay(hour: 09, minute: 00);
   late DateTime selectedDate = DateTime.now();
-  late String amount = '2';
+  late int amount = 2;
+  late List participantNames = [];
+  late List participants = [];
 
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
   final eventNameController = TextEditingController();
@@ -35,12 +39,44 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
   @override
   void initState() {
     super.initState();
-    amountController.text = '2';
+    createEvent? loading = false : Future.delayed(const Duration(seconds: 1), (){
+      _loadDataFromDB();
+      _getParticipants();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+  
+  _loadDataFromDB() {
+    FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
+      eventNameController.text = value['eventName'];
+      dateController.text =  DateFormat('dd/MM/yyyy').format(DateTime.parse(value['date']));
+      timeController.text = value['time'];
+      amountController.text = value['maxParticipants'].toString();
+      amount = value['maxParticipants'];
+      participants = value['participants'];
+
+      time = TimeOfDay(hour: int.parse(timeController.text.substring(0,2)), minute: int.parse(timeController.text.substring(3)));
+      amount = int.parse(amountController.text);
+    });
+  }
+
+  _getParticipants() async {
+    var userRef = await FirebaseFirestore.instance.collection('users').get();
+    participantNames = [];
+    for (var participant in participants){
+      for (var users in userRef.docs){
+        if (users.id == participant){
+          participantNames.add(users['name']);
+        }
+      }
+    }
+    setState(() {
+      loading = false;
+    });
   }
 
   String? validateName(String? name){
@@ -121,7 +157,9 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
         toolbarHeight: 75,
         leading: const BackButton(),
       ),
-      body: Form(
+      body: loading? CircularWidgetLoading(
+          dotColor: const Color(0xFF42BEA5),
+          child: Container()) : Form(
         key: _key,
         child: ListView(
           shrinkWrap: true,
@@ -174,6 +212,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                         )!;
                         setState(() {
                           selectedDate;
+                          dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
                         });
                       },
                       child: TextFormField(
@@ -211,6 +250,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                               initialTime: TimeOfDay(hour: 09, minute: 00)))!;
                       setState(() {
                         time;
+                        timeController.text = time.format(context);
                       });
                       },
                       child: TextFormField(
@@ -250,6 +290,126 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                     selectedItem = value;
                   });
                 },),
+            ),
+            createEvent? Container() : Container(
+              padding: EdgeInsets.only(left: 15, right: 20, top: 20, bottom: 20),
+              child: InkWell(
+                onTap: () {
+                  /// TODO show alertdialog with textButton for the names - click on them prompts for removal of user
+                  showDialog(context: context, builder: (context) {
+                    return AlertDialog(
+                      title: Text("Deltagere"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: participants.map((e) {
+                          return TextButton(onPressed: () async {
+                            Dialogs.bottomMaterialDialog(
+                                msg: 'Er du sikker? Du kan ikke fortryde denne handling',
+                                title: 'Fjern deltager',
+                                context: context,
+                                actions: [
+                                  IconsOutlineButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    text: 'Anuller',
+                                    iconData: Icons.cancel_outlined,
+                                    textStyle: TextStyle(color: Colors.grey),
+                                    iconColor: Colors.grey,
+                                  ),
+                                  IconsButton(
+                                    onPressed: () async {
+                                      /// Remove user remove from eventList db
+                                      if (e == FirebaseAuth.instance.currentUser?.uid){
+                                        Flushbar(
+                                            margin: EdgeInsets.all(10),
+                                            borderRadius: BorderRadius.circular(10),
+                                            title: 'Fjern fra event',
+                                            backgroundColor: Colors.red,
+                                            duration: Duration(seconds: 3),
+                                            message: 'Du kan ikke fjerne dig selv fra eventet',
+                                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                                        return;
+                                      } else {
+                                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                          'participants': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                                        });
+                                        /// check whether queue contains any UIDS
+                                        /// adds the last item to the participated list (moves user from queue to participation)
+                                        String queueItemUID;
+                                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
+                                          if (value['participants'].length < value['maxParticipants'] && value['queue'].isNotEmpty){
+                                            queueItemUID = value['queue'].first;
+
+                                            FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                              'participants': FieldValue.arrayUnion([queueItemUID]),
+                                            });
+
+                                            /// remove the UID after it has been updated in the participants List
+                                            FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                              'queue': FieldValue.arrayRemove([queueItemUID])
+                                            });
+
+                                          }
+                                        });
+
+
+                                        /// remove document from participatedEvents
+                                        var participatedDocs = await FirebaseFirestore.instance.collection('users')
+                                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                                            .collection('participatedEvents').get();
+
+                                        for (var docs in participatedDocs.docs){
+                                          if (widget.eventID == docs['reference'] && docs['id'] == docs.id){
+                                            docs.reference.delete();
+                                          }
+                                        }
+                                        /// remove user from queue
+                                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                          'queue': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                                        });
+                                        if (!mounted) return;
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                                        Flushbar(
+                                            margin: EdgeInsets.all(10),
+                                            borderRadius: BorderRadius.circular(10),
+                                            title: 'Fjern fra event',
+                                            backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 3),
+                                            message: '${participantNames[participants.indexOf(e)].toString()} er nu fjernet',
+                                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                                      }
+                                    },
+                                    text: 'Fjern deltager',
+                                    iconData: Icons.delete,
+                                    color: Colors.red,
+                                    textStyle: TextStyle(color: Colors.white),
+                                    iconColor: Colors.white,
+                                  ),
+                                ]);
+                          }, child: Text(participantNames[participants.indexOf(e)].toString(), style: TextStyle(color: Colors.blue),));
+                        }).toList()
+                      ),
+                      actions: [
+                        TextButton(onPressed: (){Navigator.pop(context);}, child: Text("OK"))
+                      ],
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    );
+                  });
+                },
+                child: TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.25), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                    enabledBorder:
+                    OutlineInputBorder(borderSide: const BorderSide(color: Colors.transparent),
+                        borderRadius: BorderRadius.circular(15)), labelText: 'Deltagere', labelStyle: const TextStyle(color: Colors.black),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.black,),
+                        borderRadius: BorderRadius.circular(15)
+                    ),
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    hintText: participantNames.toString().replaceAll("[", "").replaceAll("]", ""), hintStyle: TextStyle(color: Colors.grey),),),
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
