@@ -62,9 +62,6 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
       time = TimeOfDay(hour: int.parse(timeController.text.substring(0,2)), minute: int.parse(timeController.text.substring(3)));
       amount = int.parse(amountController.text);
     });
-    setState(() {
-      loading = false;
-    });
   }
 
   _getParticipants() async {
@@ -162,7 +159,7 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
       ),
       body: loading? CircularWidgetLoading(
           dotColor: const Color(0xFF42BEA5),
-          child: Container()) :Form(
+          child: Container()) : Form(
         key: _key,
         child: ListView(
           shrinkWrap: true,
@@ -305,10 +302,92 @@ class _CreateEventScreenState extends State<ManageEventScreen> {
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: participants.map((e) {
-                          return TextButton(onPressed: (){
-                            /// Remove user
+                          return TextButton(onPressed: () async {
+                            Dialogs.bottomMaterialDialog(
+                                msg: 'Er du sikker? Du kan ikke fortryde denne handling',
+                                title: 'Fjern deltager',
+                                context: context,
+                                actions: [
+                                  IconsOutlineButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    text: 'Anuller',
+                                    iconData: Icons.cancel_outlined,
+                                    textStyle: TextStyle(color: Colors.grey),
+                                    iconColor: Colors.grey,
+                                  ),
+                                  IconsButton(
+                                    onPressed: () async {
+                                      /// Remove user remove from eventList db
+                                      if (e == FirebaseAuth.instance.currentUser?.uid){
+                                        Flushbar(
+                                            margin: EdgeInsets.all(10),
+                                            borderRadius: BorderRadius.circular(10),
+                                            title: 'Fjern fra event',
+                                            backgroundColor: Colors.red,
+                                            duration: Duration(seconds: 3),
+                                            message: 'Du kan ikke fjerne dig selv fra eventet',
+                                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                                        return;
+                                      } else {
+                                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                          'participants': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                                        });
+                                        /// check whether queue contains any UIDS
+                                        /// adds the last item to the participated list (moves user from queue to participation)
+                                        String queueItemUID;
+                                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).get().then((value) {
+                                          if (value['participants'].length < value['maxParticipants'] && value['queue'].isNotEmpty){
+                                            queueItemUID = value['queue'].first;
 
-                          }, child: Text(e, style: TextStyle(color: Colors.blue),));
+                                            FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                              'participants': FieldValue.arrayUnion([queueItemUID]),
+                                            });
+
+                                            /// remove the UID after it has been updated in the participants List
+                                            FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                              'queue': FieldValue.arrayRemove([queueItemUID])
+                                            });
+
+                                          }
+                                        });
+
+
+                                        /// remove document from participatedEvents
+                                        var participatedDocs = await FirebaseFirestore.instance.collection('users')
+                                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                                            .collection('participatedEvents').get();
+
+                                        for (var docs in participatedDocs.docs){
+                                          if (widget.eventID == docs['reference'] && docs['id'] == docs.id){
+                                            docs.reference.delete();
+                                          }
+                                        }
+                                        /// remove user from queue
+                                        FirebaseFirestore.instance.collection('eventList').doc(widget.eventID).update({
+                                          'queue': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+                                        });
+                                        if (!mounted) return;
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => const Dashboard()));
+                                        Flushbar(
+                                            margin: EdgeInsets.all(10),
+                                            borderRadius: BorderRadius.circular(10),
+                                            title: 'Fjern fra event',
+                                            backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 3),
+                                            message: '${participantNames[participants.indexOf(e)].toString()} er nu fjernet',
+                                            flushbarPosition: FlushbarPosition.BOTTOM).show(context);
+                                      }
+                                    },
+                                    text: 'Fjern deltager',
+                                    iconData: Icons.delete,
+                                    color: Colors.red,
+                                    textStyle: TextStyle(color: Colors.white),
+                                    iconColor: Colors.white,
+                                  ),
+                                ]);
+                          }, child: Text(participantNames[participants.indexOf(e)].toString(), style: TextStyle(color: Colors.blue),));
                         }).toList()
                       ),
                       actions: [
